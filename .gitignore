@@ -1,5 +1,3 @@
-build/
-.idea/
-.gradle/
-.gitattributes
-HELP.md
+/build/
+/.idea/
+/.gradle/
