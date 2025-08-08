@@ -4,9 +4,9 @@ import com.learn.ib.resource_service.exception.InvalidBodyException;
 import com.learn.ib.resource_service.model.dto.*;
 import com.learn.ib.resource_service.model.entity.MP3Resource;
 import com.learn.ib.resource_service.repository.MP3ResourceRepository;
+import com.learn.ib.resource_service.restclient.RestConfiguration;
 import com.learn.ib.resource_service.service.mapper.MP3ResourceMapper;
 import com.learn.ib.resource_service.service.parser.MP3Parser;
-import com.learn.ib.resource_service.validation.IdCsvValidator;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
@@ -22,6 +22,9 @@ import java.util.NoSuchElementException;
 
 @Service
 public class MP3ResourceServiceImpl implements MP3ResourceService {
+
+    @Autowired
+    private RestConfiguration restConfiguration;
 
     @Autowired
     private MP3ResourceRepository repository;
@@ -60,7 +63,7 @@ public class MP3ResourceServiceImpl implements MP3ResourceService {
     public List<Integer> deleteMP3Resources(String id) {
         List<Integer> ids = Arrays.stream(id.split(",")).map(Integer::parseInt).toList();
         List<Integer> foundResourcesIds = repository.findAllById(ids).stream().map(MP3Resource::getId).toList();
-        IdCsvDto idCsvDto = restClient.delete().uri("http://localhost:8081/songs?id={id}", id).retrieve().body(IdCsvDto.class);
+        IdCsvDto idCsvDto = restClient.delete().uri(restConfiguration.getUrl() + "?id={id}", id).retrieve().body(IdCsvDto.class);
         repository.deleteAllById(idCsvDto != null ? idCsvDto.ids() : new ArrayList<>());
         return foundResourcesIds;
     }
