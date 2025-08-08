@@ -1,10 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/resource_db
+    url: ${RESOURCE_DB_DATASOURCE_URL:jdbc:postgresql://localhost:5432/resource-db}
     username: postgres
     password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
 app:
-  url: http://localhost:8081/songs
+  url: ${SONG_SERVICE_APP_URL:http://localhost:8081/songs}

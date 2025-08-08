@@ -3,9 +3,15 @@ package com.learn.ib.resource_service.model.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "mp3_resource")
+@SequenceGenerator(
+        name = "mp3_resource_seq",
+        sequenceName = "mp3_resource_id_seq",
+        allocationSize = 1
+)
 public class MP3Resource {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mp3_resource_seq")
     private Integer id;
     private byte[] body;
 
