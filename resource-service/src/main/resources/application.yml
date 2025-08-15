@@ -3,5 +3,11 @@ spring:
     url: ${RESOURCE_DB_DATASOURCE_URL:jdbc:postgresql://localhost:5432/resource-db}
     username: postgres
     password: postgres
+  application:
+    name: resource-service
 app:
   url: ${SONG_SERVICE_APP_URL:http://localhost:8081/songs}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_APP_URL:http://localhost:8761/eureka/}

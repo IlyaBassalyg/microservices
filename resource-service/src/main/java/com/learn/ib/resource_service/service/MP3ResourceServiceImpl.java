@@ -12,6 +12,8 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -33,6 +35,9 @@ public class MP3ResourceServiceImpl implements MP3ResourceService {
     private MP3ResourceMapper mapper;
 
     @Autowired
+    private DiscoveryClient discoveryClient;
+
+    @Autowired
     private RestClient restClient;
 
     @Lookup
@@ -45,7 +50,8 @@ public class MP3ResourceServiceImpl implements MP3ResourceService {
         Integer createdId = repository.save(mapper.mapperDtoToEntity().map(mp3ResourceDto)).getId();
         SongMetadataDto songMetadataDto = getMP3Parser(new BodyContentHandler(), new Metadata(), new ParseContext(), mp3ResourceDto.body())
                 .parseBody(createdId);
-        IdDto body = restClient.post().body(songMetadataDto).retrieve().body(IdDto.class);
+        ServiceInstance serviceInstance = discoveryClient.getInstances("song-service").get(0);
+        IdDto body = restClient.post().uri(serviceInstance.getUri() + "/songs").body(songMetadataDto).retrieve().body(IdDto.class);
         if (body == null && body.id() <= 0) {
             repository.deleteById(createdId);
             throw new InvalidBodyException("Failed to create song metadata for the resource");
@@ -63,7 +69,8 @@ public class MP3ResourceServiceImpl implements MP3ResourceService {
     public List<Integer> deleteMP3Resources(String id) {
         List<Integer> ids = Arrays.stream(id.split(",")).map(Integer::parseInt).toList();
         List<Integer> foundResourcesIds = repository.findAllById(ids).stream().map(MP3Resource::getId).toList();
-        IdCsvDto idCsvDto = restClient.delete().uri(restConfiguration.getUrl() + "?id={id}", id).retrieve().body(IdCsvDto.class);
+        ServiceInstance serviceInstance = discoveryClient.getInstances("song-service").get(0);
+        IdCsvDto idCsvDto = restClient.delete().uri(serviceInstance.getUri() + "/songs?id={id}", id).retrieve().body(IdCsvDto.class);
         repository.deleteAllById(idCsvDto != null ? idCsvDto.ids() : new ArrayList<>());
         return foundResourcesIds;
     }

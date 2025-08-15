@@ -1,2 +1,2 @@
 rootProject.name = 'microservices'
-include("resource-service", "song-service")
+include("eureka-service-discovery", "resource-service", "song-service")
