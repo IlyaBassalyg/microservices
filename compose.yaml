@@ -1,4 +1,11 @@
 services:
+  eureka-service-discovery:
+    build:
+      context: .
+      dockerfile: eureka-service-discovery/Dockerfile
+    container_name: eureka-service-discovery
+    ports:
+      - "8761:8761"
   resource-db:
     image: postgres:17-alpine3.22
     container_name: resource-db
@@ -31,18 +38,30 @@ services:
     environment:
       RESOURCE_DB_DATASOURCE_URL: ${RESOURCE_DB_URL}
       SONG_SERVICE_APP_URL: ${SONG_SERVICE_URL}
+      EUREKA_SERVICE_APP_URL: ${EUREKA_SERVICE_URL}
+
     depends_on:
-      - resource-db
+      eureka-service-discovery:
+        condition: service_started
+      resource-db:
+        condition: service_started
+    restart: always
     ports:
       - "8080:8080"
   song-service:
     build:
       context: .
       dockerfile: song-service/Dockerfile
-    container_name: song-service
     environment:
       SONG_DB_DATASOURCE_URL: ${SONG_DB_URL}
+      EUREKA_SERVICE_APP_URL: ${EUREKA_SERVICE_URL}
     depends_on:
-      - song-db
+      eureka-service-discovery:
+        condition: service_started
+      song-db:
+        condition: service_started
+    restart: always
+    deploy:
+      replicas: 2
     ports:
-      - "8081:8081"
+      - 8081-8082:8081
